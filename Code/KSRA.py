@@ -7,35 +7,25 @@ from sklearn.metrics import roc_auc_score
 
 
 # -----------------Variant 1-----------------
-def KSR_v1(X, lambda_reg, iter_num=50, tol=1e-6):
+def KSR_v1(K, lambda_reg, iter_num=50, tol=1e-6):
     """
-    Core self-representation optimization (NumPy version) using IRLS for l2,1 norm.
-    Solves: min ||X - XW||_21 + lambda*||W||_21
-
-    Inputs:
-        X (np.ndarray): n x m matrix (kernel matrix in KSRA framework).
-        lambda_reg (float): Regularization parameter (lambda).
-        iter_num (int): Maximum iterations.
-        tol (float): Convergence tolerance.
-
-    Outputs:
-        W (np.ndarray): n x n self-representation matrix.
-        E (np.ndarray): Residual matrix (X - XW)' (m x n).
+    Core self-representation optimization using IRLS for l2,1 norm.
+    Solves: min ||K - KZ||_21 + lambda*||Z||_21
     """
-    n, m = X.shape
+    n, m = K.shape
 
-    W = np.zeros((n, n))
+    Z = np.zeros((n, n))
     obj = []
 
     IRLS_STABILITY_M = 1e-4
 
     for iter_idx in range(iter_num):
-        wc = np.sqrt(np.sum(W * W, axis=1, keepdims=True))
+        zc = np.sqrt(np.sum(Z * Z, axis=1, keepdims=True))
 
-        Gr_inv = 2 * np.maximum(wc, IRLS_STABILITY_M)
+        Gr_inv = 2 * np.maximum(zc, IRLS_STABILITY_M)
         Gr = 1.0 / Gr_inv
 
-        E = X - X @ W
+        E = K - K @ Z
 
         ec = np.sqrt(np.sum(E * E, axis=0, keepdims=True))
 
@@ -45,26 +35,26 @@ def KSR_v1(X, lambda_reg, iter_num=50, tol=1e-6):
         G_R = np.diag(Gr.flatten())
         G_L = np.diag(Gl.flatten())
 
-        XGXt = X @ G_L @ X.T
+        KGKt = K @ G_L @ K.T
 
         G_R_inv_diag = 1.0 / Gr.flatten()
         G_R_inv = np.diag(G_R_inv_diag)
 
-        A = G_R_inv @ XGXt + lambda_reg * np.eye(n)
+        A = G_R_inv @ KGKt + lambda_reg * np.eye(n)
 
-        b = G_R_inv @ XGXt
+        b = G_R_inv @ KGKt
 
         try:
-            W = np.linalg.solve(A, b)
+            Z = np.linalg.solve(A, b)
         except np.linalg.LinAlgError:
-            W = np.linalg.pinv(A) @ b
+            Z = np.linalg.pinv(A) @ b
 
-        E_obj = X - X @ W
+        E_obj = K - K @ Z
         ec_obj = np.sqrt(np.sum(E_obj * E_obj, axis=0))
 
-        wc_obj = np.sqrt(np.sum(W * W, axis=1))
+        zc_obj = np.sqrt(np.sum(Z * Z, axis=1))
 
-        current_obj = np.sum(ec_obj) + lambda_reg * np.sum(wc_obj)
+        current_obj = np.sum(ec_obj) + lambda_reg * np.sum(zc_obj)
         obj.append(current_obj)
 
         if iter_idx > 0 and np.abs(obj[-1] - obj[-2]) < tol:
@@ -73,141 +63,139 @@ def KSR_v1(X, lambda_reg, iter_num=50, tol=1e-6):
 
     MAX_W_VALUE = 1e10
 
-    W[np.isinf(W) | (W > MAX_W_VALUE)] = 0.0
-    W[np.isnan(W)] = 0.0
+    Z[np.isinf(Z) | (Z > MAX_W_VALUE)] = 0.0
+    Z[np.isnan(Z)] = 0.0
 
-    E_final = X.T @ W - X.T
+    E_final = K.T @ Z - K.T
 
-    return W, E_final
+    return Z, E_final
 
 # -----------------Varian 2-----------------
-def KSR_v2(X, lambda_reg):
+def KSR_v2(K, lambda_reg):
     """
-    Solve min ||X - XW||_F^2 + lambda * ||W||_F^2
+    Solve min ||K - KZ||_F^2 + lambda * ||Z||_F^2
     """
-    n, m = X.shape
-    XTX = X.T @ X
+    n, m = K.shape
+    KTK = K.T @ K
     I = np.eye(n)
-    A = XTX + lambda_reg * I
-    b = XTX
+    A = KTK + lambda_reg * I
+    b = KTK
 
     try:
-        W = np.linalg.solve(A, b)
+        Z = np.linalg.solve(A, b)
     except np.linalg.LinAlgError:
-        W = np.linalg.pinv(A) @ b
-    E = X.T @ W - X.T
-    return W, E
+        Z = np.linalg.pinv(A) @ b
+    E = K.T @ Z - K.T
+    return Z, E
 
 # -----------------Variant 3-----------------
-def KSR_v3(X, lambda_reg, iter_num=50, tol=1e-6, eps=1e-12):
+def KSR_v3(K, lambda_reg, iter_num=50, tol=1e-6, eps=1e-12):
     """
-    Solve: min_W ||X - XW||_{2,1} + lambda * ||W||_F^2
+    Solve: min_Z ||K - KZ||_{2,1} + lambda * ||Z||_F^2
     Using IRLS on the l2,1 loss and closed-form solve for W each iteration.
-
-    Returns W (n x n) and residual E = X - XW (n x n)
     """
-    n, m = X.shape
+    n, m = K.shape
 
-    W = np.zeros((n, n))
+    Z = np.zeros((n, n))
     obj_vals = []
 
     for it in range(iter_num):
-        E = X - X @ W
+        E = K - K @ Z
 
         col_norms = np.sqrt(np.sum(E**2, axis=0, keepdims=False) + eps)
         g = 0.5 / col_norms
         G = np.diag(g)
 
-        XGXt = X @ G @ X.T
-        A = XGXt + lambda_reg * np.eye(n)
-        B = XGXt
+        KGKt = K @ G @ K.T
+        A = KGKt + lambda_reg * np.eye(n)
+        B = KGKt
 
         try:
-            W_new = np.linalg.solve(A, B)
+            Z_new = np.linalg.solve(A, B)
         except np.linalg.LinAlgError:
-            W_new = np.linalg.pinv(A) @ B
+            Z_new = np.linalg.pinv(A) @ B
 
-        diff = np.linalg.norm(W_new - W, ord='fro')
-        denom = 1.0 + np.linalg.norm(W, ord='fro')
-        W = W_new
+        diff = np.linalg.norm(Z_new - Z, ord='fro')
+        denom = 1.0 + np.linalg.norm(Z, ord='fro')
+        Z = Z_new
 
-        E = X - X @ W
+        E = K - K @ Z
         approx_loss = np.sum(np.sqrt(np.sum(E**2, axis=0) + eps))
-        obj = approx_loss + lambda_reg * np.linalg.norm(W, ord='fro')**2
+        obj = approx_loss + lambda_reg * np.linalg.norm(Z, ord='fro')**2
         obj_vals.append(obj)
 
         if it > 0 and abs(obj_vals[-1] - obj_vals[-2]) < tol:
             print(f"Converged at iteration {it+1}")
             break
 
-    E = X - X @ W
-    return W, E
+    E = K - K @ Z
+    return Z, E
 
 # -----------------Varian 4-----------------
-def KSR_v4(X, lambda_reg, rho=1.0, iter_num=100, tol=1e-6, eps=1e-12):
+def KSR_v4(K, lambda_reg, rho=1.0, iter_num=100, tol=1e-6, eps=1e-12):
     """
-    Solve: min_W ||X - XW||_F^2 + lambda * ||W||_{2,1}
-    Using ADMM with splitting W=Z.
+    Solve: min_Z ||K - KZ||_F^2 + lambda * ||Z||_{2,1}
+    Using ADMM with splitting Z=J.
 
     Variables:
-        W: main variable
-        Z: prox variable (group-lasso style)
+        Z: main variable
+        J: prox variable
         U: scaled dual variable
     """
-    n, m = X.shape
+    n, m = K.shape
 
-    W = np.zeros((n, n))
     Z = np.zeros((n, n))
+    J = np.zeros((n, n))
     U = np.zeros((n, n))
 
-    XTX = X.T @ X * 2
+    KTK = K.T @ K * 2
     I = np.eye(n)
 
     try:
-        A = XTX + rho * I
+        A = KTK + rho * I
         A_inv = np.linalg.inv(A)
     except np.linalg.LinAlgError:
         A_inv = None
 
     for it in range(iter_num):
         # ------------------ W-update ------------------
-        B = 2 * (X.T @ X) + rho * (Z - U)
+        B = 2 * (K.T @ K) + rho * (J - U)
 
         if A_inv is not None:
-            W_new = A_inv @ B
+            Z_new = A_inv @ B
         else:
             try:
-                W_new = np.linalg.solve(XTX + rho * I, B)
+                Z_new = np.linalg.solve(KTK + rho * I, B)
             except np.linalg.LinAlgError:
-                W_new = np.linalg.pinv(XTX + rho * I) @ B
+                Z_new = np.linalg.pinv(KTK + rho * I) @ B
 
         # ------------------ Z-update (row-wise shrinkage) ------------------
-        Y = W_new + U
-        Z_new = np.zeros_like(Z)
+        V = Z_new + U
+        J_new = np.zeros_like(J)
 
         tau = lambda_reg / rho
         for i in range(n):
-            row = Y[i, :]
+            row = V[i, :]
             norm_row = np.linalg.norm(row, 2)
             if norm_row > tau:
-                Z_new[i, :] = (1 - tau / norm_row) * row
+                J_new[i, :] = (1 - tau / norm_row) * row
             else:
-                Z_new[i, :] = 0
+                J_new[i, :] = 0
 
         # ------------------ Dual update ------------------
-        U_new = U + (W_new - Z_new)
+        U_new = U + (Z_new - J_new)
 
         # ------------------ Convergence check ------------------
-        r_norm = np.linalg.norm(W_new - Z_new, 'fro')
-        s_norm = np.linalg.norm(rho * (Z_new - Z), 'fro')
+        r_norm = np.linalg.norm(Z_new - J_new, 'fro')
+        s_norm = np.linalg.norm(rho * (J_new - J), 'fro')
 
-        W, Z, U = W_new, Z_new, U_new
+        Z, J, U = Z_new, J_new, U_new
 
         if r_norm < tol and s_norm < tol:
             break
 
-    E = X - X @ W
-    return W, E
+    E = K - K @ Z
+    return Z, E
 
 
 # ==================== Hamming  ====================
@@ -257,24 +245,24 @@ def KSRA(data, lambda_val, sigma=None, solver='v2', **solver_kwargs):
 
     # ----------------- Choose Solver -----------------
     if solver == 'v1':
-        W, E = KSR_v1(kernel_matrix, lambda_val, **solver_kwargs)
+        Z, E = KSR_v1(kernel_matrix, lambda_val, **solver_kwargs)
     elif solver == 'v2':
-        W, E = KSR_v2(kernel_matrix, lambda_val, **solver_kwargs)
+        Z, E = KSR_v2(kernel_matrix, lambda_val, **solver_kwargs)
     elif solver == 'v3':
-        W, E = KSR_v3(kernel_matrix, lambda_val, **solver_kwargs)
+        Z, E = KSR_v3(kernel_matrix, lambda_val, **solver_kwargs)
     elif solver == 'v4':
-        W, E = KSR_v4(kernel_matrix, lambda_val)
+        Z, E = KSR_v4(kernel_matrix, lambda_val)
     else:
         raise ValueError(f"Unknown solver: {solver}")
 
     # ----------------- PageRank Propagation -----------------
     NUMERICAL_STABILITY_EPS = 1e-8
 
-    W_sym = (W + W.T) / 2
-    row_sums = W_sym.sum(axis=1, keepdims=True)
+    Z_sym = (Z + Z.T) / 2
+    row_sums = Z_sym.sum(axis=1, keepdims=True)
 
     row_sums_clipped = np.maximum(row_sums, NUMERICAL_STABILITY_EPS)
-    P = W_sym / row_sums_clipped
+    P = Z_sym / row_sums_clipped
 
     d, tol_pr, max_iter = 0.85, 1e-6, 1000
     pi = np.ones(n) / n
