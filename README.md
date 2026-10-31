@@ -34,6 +34,7 @@ samples_scores = [0.0734101  0.07207255 0.         0.18820704 0.08632531 0.06828
  0.10961915 0.08438363]
 AUC = 0.8125000000
 ```
+You can also see [REPRODUCIBILITY.md](REPRODUCIBILITY.md) for dependencies, data preparation, and experimental settings.
 
 ## Contact
 If you have any questions, please contact yangluoshu15717@foxmail.com or yuanzhong@scu.edu.cn.
