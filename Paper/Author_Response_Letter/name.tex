@@ -1,0 +1,501 @@
+\documentclass{ar2rc}
+\usepackage{multicol}
+\usepackage{tcolorbox}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{geometry}
+\usepackage{subfigure}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{proof}{Proof}
+\newtheorem{example}{Example}
+\newtheorem{property}{Property}
+
+\rfoot{Page \thepage}
+\lettertitle{The Responses to Editors and Reviewers for Revision}
+\title{KSRA: Identifying kernelized self-representation anomalies}
+% \author{Xxx Xxx, Member, IEEE, Xxxxx Xxx, Xxx Xxxx, Xxxx xxx, Xxxx xxxxx, Senior Member, IEEE, Xxxxx Xxxx}
+\author{Zhong Yuan, Luoshu Yang, Xinyu Su, Yun-Cheng Liu, Yeshalem Gezahegn, Yingke Chen, Dezhong Peng}
+\journal{Expert Systems}
+\doi{6303041}
+\corresponding{Zhong Yuan}
+\email{yuanzhong@scu.edu.cn}
+
+\begin{document}
+
+\begin{center}
+    \maketitle
+\end{center}
+
+% \BT{To Editors and Reviewers}
+
+\BL{All authors thank you very much for your constructive and valuable comments. We have checked the paper carefully and made all necessary modifications according to the suggestions of the reviews. The details of the responses for every comment of editors and reviewers are listed as follows.}
+
+% ======================== Editor======================
+\section{Responses to editors}
+% commet
+\begin{tcolorbox}[title = {Editors' Comment}]
+All three reviewers consider that this manucript should undergo a major revision, and have presented valuable suggestions related to the improvement of the manuscript, including the presentation improvement and the adding of comparative tables in the revision. The authors should carefully consider these suggestions to revise the manuscript.
+\end{tcolorbox}
+\response{Thank you for your recognition of our work and your suggestions. We have made the necessary revisions based on the issues you raised.
+}
+
+%=======================Reviewers=============================
+\section{Responses to Reviewers}
+\subsection{Reviewer \#1}
+% comment 1 
+\begin{tcolorbox}[title = {The Reviewer \#1's Comment 1}]
+The problem addressed is relevant and practically important. \\
+The proposed framework is technically meaningful and integrates kernel learning with self-representation. \\
+The manuscript evaluates the method on multiple benchmark datasets. \\
+The paper is generally well organized and follows a logical structure.
+\end{tcolorbox}
+\response{
+Thank you for your positive assessment of the practical relevance of the problem, the technical contribution of our framework, the benchmark evaluation, and the organization of the manuscript. We appreciate your encouraging comments and constructive suggestions, which have helped us improve the paper.
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#1's Comment 2}]
+Novelty should be clarified. \\
+The manuscript should explicitly distinguish the proposed KSRA framework from existing kernel-based and self-representation-based anomaly detection methods.\\
+A dedicated comparison highlighting the novelty and technical contribution over recent state-of-the-art methods would strengthen the paper.
+\end{tcolorbox}
+\response{
+Thank you for this helpful comment. We agree that the technical distinctions of KSRA should be made explicit in addition to reporting comparative performance.
+
+We have revised the contribution statement in the Introduction and added a dedicated comparison paragraph at the end of Section [2]. The revised discussion distinguishes KSRA from kernel-based detectors, including Kernel PCA and OCSVM-RBF, and from self-representation-based approaches, including LRR and the self-representation/random-walk method of You et al. Specifically, KSRA learns reconstruction relationships from mixed-attribute kernel similarity profiles, examines four combinations of reconstruction losses and regularization terms, and combines a kernel-derived isolation weight with a random-walk structural anomaly score. We explicitly acknowledge that self-representation and random walks have previously been combined, and clarify that our contribution concerns the specific modeling and scoring framework for mixed-attribute anomaly detection.
+
+These clarifications complement the expanded empirical comparison in Section [5.2] and Table [4], which includes established kernel-based and self-representation-based baselines, together with the recent DVGAE-GAN detector. The manuscript also compares KSRA with recent anomaly detection methods in Table 3. Together, the revised technical discussion and experimental comparisons clarify both the methodological distinctions and the empirical effectiveness of KSRA.
+
+\textit{Locations: Introduction, Section [2], Section [5.2] and Table [4].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#1's Comment 3}]
+Methodological description requires improvement. \\
+The derivation of the four model variants should be explained more clearly. \\
+The motivation for selecting different loss functions and regularization terms should be justified. \\
+The random walk mechanism should be explained with greater mathematical clarity.
+\end{tcolorbox}
+\response{
+Thank you for this constructive comment. We have revised Section [4.2] to clarify both the motivation for the four model variants and their derivation.
+
+First, we now explicitly explain that the four variants combine two reconstruction losses with two coefficient regularizers. The revised discussion distinguishes the roles of the $\ell_{2,1}$ and squared Frobenius losses in residual modeling, and the roles of the corresponding regularizers in promoting row sparsity or coefficient shrinkage. This explains the rationale for examining the four combinations within a common framework, without assuming that one formulation is universally preferable.
+
+Second, we have standardized the row-wise definition of the $\ell_{2,1}$ norm and revised the associated residual and weighting notation for consistency. For Variants 1 and 3, we clarify the smooth approximation and the iteratively reweighted quadratic majorization procedure, including the construction of the weighting matrices and the derivation of the closed-form updates from the first-order optimality conditions. For Variant 2, the direct closed-form solution is provided in Eqs. (16)–(17), while the auxiliary-variable formulation and ADMM updates for Variant 4 are presented in Eqs. (20)–(26).
+
+These revisions make the modeling choices and optimization steps more explicit while retaining the four-variant structure of KSRA.
+
+We have revised Section 4.3 to explain the random-walk mechanism more explicitly. First, we distinguish the signed reconstruction coefficients from the nonnegative graph affinities and specify row normalization and uniform handling of zero-degree nodes. This establishes a valid row-stochastic transition matrix. Second, we define the visiting-probability vector and clarify that $d$ is the restart probability, whereas $1-d$ controls graph propagation. We provide the effective transition matrix $\boldsymbol{Q}=(1-d)\boldsymbol{P}+d\boldsymbol{1}\boldsymbol{v}^\top$ and explain why uniform restart guarantees a unique stationary distribution. We also state the contraction property of the update and specify the initialization and stopping criterion. Finally, we clarify how stationary probabilities are converted into structural anomaly scores and combined with the similarity-derived isolation weights. Lower visiting probability is presented as structural anomaly evidence, rather than a guaranteed characterization of anomalous samples. The notation in Figure [1] has also been aligned with the revised equations.
+
+\textit{Locations: Section [4.2], Section [4.3] and Fig [1].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#1's Comment 4}]
+Experimental evaluation needs strengthening. \\
+Include an ablation study demonstrating the contribution of each module (mixed kernel, self-representation, and random walk). \\
+Add statistical significance tests to support performance improvements. \\
+Discuss computational complexity and scalability for large datasets. \\
+Reproducibility should be improved. \\
+Hyperparameter selection, parameter sensitivity, and implementation details should be described in greater detail. \\
+The GitHub repository should include sufficient documentation for reproducing the experiments.
+\end{tcolorbox}
+\response{
+Thank you for these detailed suggestions. We have expanded the experimental evaluation and clarified the implementation and evaluation procedures. The changes are described below.
+
+\begin{enumerate}
+    \item Ablation study. \\ We added an ablation study examining the mixed kernel, self-representation, and random-walk components. Specifically, we replaced the mixed kernel with a Euclidean RBF kernel, directly used the kernel matrix as the affinity matrix without self-representation, and replaced random walk propagation with degree-based scoring. All configurations use the same Frobenius norm self-representation solver where applicable. \\ \textit{Location: Section [5.7], Table [7].}
+
+    \item Statistical significance analysis. \\ We revised the statistical analysis using the fixed Frobenius norm KSRA variant instead of selecting the best variant separately for each dataset. We report the Friedman omnibus test and Nemenyi post-hoc comparisons with a critical-difference diagram. We additionally provide paired Wilcoxon signed-rank tests with Holm correction across the 11 original baseline comparisons, together with mean AUC differences and win/tie/loss counts. \\ \textit{Location: Section [5.5], Table [6].}
+
+    \item Computational complexity and scalability. \\ We added theoretical time and space complexity analyses for all four KSRA variants. The analysis distinguishes the single dense solve used by the Frobenius-norm variant from the iterative IRLS and ADMM solvers. It also explicitly accounts for the temporary arrays generated by the current categorical-distance broadcasting implementation. \\ \textit{Location: Section [5.9].}
+
+    \item Hyperparameters and implementation details. \\ We expanded the descriptions of the parameter search, selection criterion, and implementation settings. We also added sensitivity analyses for the regularization parameter $\lambda$, random-walk restart weight $d$, and kernel-bandwidth multiplier, using the fixed Frobenius norm variant. \\ \textit{Location: Section [5.6], Figure [4].}
+
+    \item Reproduction documentation. We have added a reproducibility guide (REPRODUCIBILITY.md) to the GitHub repository, documenting the software dependencies, dataset preparation, experimental settings, and instructions for running the four KSRA variants. We have also clarified the parameter-selection procedure and the format of the output results.
+\end{enumerate}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#1's Comment 5}]
+Comparison with recent literature. \\
+Include comparisons with more recent anomaly detection approaches published during the last 2–3 years, especially deep learning and graph-based methods. like author may include the references: \\
+. Khan, Wasim, et al. "Anomalous node detection in attributed social networks using dual variational autoencoder with generative adversarial networks." Data Science and Management 7.2 (2024): 89-98. \\
+. Khan, Wasim, et al. "Attention-enhanced substructure detection for topology-based node anomalies in attributed networks." AIP Conference Proceedings. Vol. 3375. No. 1. AIP Publishing LLC, 2026.
+\end{tcolorbox}
+\response{
+Thank you for recommending these recent studies. We have expanded the experimental comparison by including the dual variational autoencoder with generative adversarial networks proposed by Khan et al. (2024), denoted as DVGAE-GAN in the revised manuscript. This provides an additional recent baseline combining deep learning and graph-based anomaly detection.
+
+Because our benchmark datasets contain tabular attributes without observed network edges, we constructed symmetric k-nearest-neighbor graphs with RBF edge weights to adapt the method to this setting. The results of this adapted comparison are reported in Section [5.2] and Tables [4–5]. The comparison therefore evaluates the adapted implementation on our benchmarks rather than reproducing the original social-network evaluation.
+
+\textit{Locations: Section [5.2], Tables [4-5].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#1's Comment 6}]
+Several grammatical and typographical errors should be corrected. \\
+Some sentences are repetitive (e.g., the introduction contains repeated phrases such as "usually require"). \\
+Ensure consistent notation throughout the manuscript. \\
+Improve the readability of equations by defining all variables immediately after their introduction. \\
+Improve the quality and readability of figures and ensure consistent formatting of tables. \\
+Verify that all references are complete, correctly formatted, and up to date.
+\end{tcolorbox}
+\response{
+Thank you for these helpful suggestions. We have edited the manuscript to correct grammatical and typographical errors and remove duplicated expressions. We have also standardized mathematical notation, corrected inconsistent matrix dimensions and equation references, and clarified variable definitions and boundary cases. Figure labels and table formatting have been revised for readability. The references have been checked for duplicate entries, publication details, and formatting consistency.
+
+\textit{Locations: Throughout the manuscript, particularly Sections [1], [3], and [4], Table [1], Algorithm [1], and the References.}
+}
+
+
+
+
+\subsection{Reviewer \#2}
+\begin{tcolorbox}[title = {The Reviewer \#2's Comment 1}]
+The related work section fails to systematically review representative kernel-based (e.g., SVDD) and self-representation-based anomaly detection methods, such as dynamic low-rank and sparse priors constrained deep autoencoders for hyperspectral anomaly detection. It is suggested to supplement relevant discussions and clarify the core differences between the proposed KSRA and existing works.
+\end{tcolorbox}
+\response{
+Thank you for this constructive suggestion. We have expanded and reorganized Section [2] into two subsections, “Conventional and Kernel-Based Outlier Detection” and “Self-Representation and Reconstruction-Based Outlier Detection,” to provide a clearer review of the relevant methods.
+
+In Section [2.1], we have added a focused discussion of representative kernel-based anomaly detectors, including SVDD, OCSVM, and Kernel PCA, distinguishing their data-domain description, support estimation, and subspace reconstruction mechanisms. We also discuss granular-ball-induced multiple kernel K-means as a related development in kernel representation learning, while identifying its clustering objective.
+
+In Section [2.2], we retain the existing review of sample-level and feature-level self-representation and its applications to outlier detection, and extend it to representative hyperspectral approaches. The added discussion covers spatial invariant tensor self-representation, the dynamic low-rank and sparse priors constrained deep autoencoders specifically mentioned by the reviewer, and the recent prototype-guided spatial–spectral interaction network.
+
+Finally, we have revised the concluding comparison to clarify the core differences between these approaches and KSRA. In particular, KSRA learns self-representation coefficients from mixed-attribute kernel similarity profiles and combines a kernel-derived isolation weight with a graph-based structural anomaly score. We also explicitly acknowledge prior work combining self-representation with random walks, thereby distinguishing the contribution of KSRA from the use of these established components. These revisions clarify both the relevant methodological developments and the positioning of KSRA.
+
+\textit{Location: Section [2]. }
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#2's Comment 2}]
+The direct summation of Euclidean and Hamming distances ignores the scale imbalance between numerical and nominal attributes, which may dominate the kernel matrix. Please justify this design or supplement a normalization mechanism for different distance types.
+\end{tcolorbox}
+\response{
+Thank you for pointing out this issue. We have clarified the preprocessing and the rationale for the additive distance in Section [4.1]. The numerical inputs used in the Euclidean-distance calculation are already range-normalized to $[0,1]$, and the Hamming distance is computed as the proportion of mismatched attributes. Thus, the formulation does not directly combine numerical differences in their original measurement units with an unnormalized mismatch count.
+
+The additive formulation is a fixed fusion that avoids introducing an additional type-specific weighting parameter. Nevertheless, we agree that these preprocessing steps do not guarantee equal contributions from the two components, since the numerical distance also depends on attribute count and empirical variability. We have explicitly acknowledged this limitation.
+
+We further clarify that choosing the mean off-diagonal hybrid distance as the bandwidth provides invariance to a common rescaling of the hybrid distance, rather than balancing its components. The original distance definition is retained, with its assumptions and limitations now stated explicitly. The revised texts are as follows:
+
+\textcolor{blue}{$\cdots$ The numerical inputs are range-normalized to $[0,1]$ before distance computation, while the Hamming component is defined as the proportion of mismatched nominal attributes. $\cdots$}
+
+\textit{Location: Section [4.1].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#2's Comment 3}]
+The four model variants only cover combinations of $\ell_{2,1}$-norm and Frobenius norm, excluding the widely used low-rank constraint in self-representation anomaly detection. It is suggested to explain the selection rationale and discuss the applicability of low-rank regularization, which can refer to a research work titled “a hyperspectral target detection method by combining robust dictionaries and constrained energy minimization regularized low-rank and sparse representation model”.
+\end{tcolorbox}
+\response{
+Thank you for this helpful suggestion. We agree that low-rank regularization is an important option in representation-based detection. We have added a concise discussion in Section [4.2] and cited the suggested RDCEM-LRSR study.
+
+As clarified in the revised manuscript, the four variants are designed to examine residual modeling, row sparsity, and coefficient shrinkage within a common framework, rather than to cover all possible regularizers. The selected formulations also permit closed-form solutions or updates without additional singular-value thresholding.
+
+We now discuss low-rank regularization as a complementary extension. A nuclear-norm penalty could encourage a low-dimensional coefficient structure, especially when strong background correlations support this prior. The suggested study illustrates its value in hyperspectral target detection with robust dictionaries and target-specific information. For KSRA, incorporating such a penalty would introduce an additional structural prior whose suitability depends on preserving anomaly-discriminative relationships. We therefore acknowledge its applicability without claiming that the selected regularizers universally outperform low-rank alternatives. We have added the following explanation:
+
+\textcolor{blue}{$\cdots$ Low-rank regularization provides a complementary global structural prior. For example, RDCEM-LRSR combines robust dictionaries, low-rank and sparse representation, $\cdots$}
+
+\textit{Location: Section [4.2].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#2's Comment 4}]
+The damping factor $d$ of the random walk module lacks detailed parameter setting and sensitivity analysis, and the uniform teleportation vector does not utilize the prior information of the adaptive weight $\boldsymbol{w}$. It is suggested to supplement relevant analysis and discussion.
+\end{tcolorbox}
+\response{
+Thank you for pointing out the need to clarify the random walk parameter and the use of the adaptive weights.
+
+First, we have clarified the parameter convention to match the implementation. Specifically, $d$ denotes the restart weight:
+\textcolor{blue}{
+\begin{equation}
+    \boldsymbol s_{rw}^{(t+1)}
+=(1-d)\boldsymbol P^\top\boldsymbol s_{rw}^{(t)}
++d\boldsymbol v,
+\qquad
+\boldsymbol v=\boldsymbol1/n.
+\end{equation}
+where $d\in(0,1)$ denotes the restart weight, $\cdots$
+}
+
+We use $d=0.85$ and have added a sensitivity analysis over $d\in \{0.05,\allowbreak 0.10,\allowbreak 0.15,\allowbreak 0.30,\allowbreak
+0.50,\allowbreak 0.70,\allowbreak 0.85,\allowbreak 0.95\}$. With the Frobenius-norm variant and $\lambda=0.01$ fixed, mean ROC-AUC ranges from 0.8330 to 0.8436, with relatively small changes at higher restart weights.
+
+Second, the adaptive weights are incorporated at the final scoring stage through
+\textcolor{blue}{
+\begin{equation}
+    \boldsymbol s=\boldsymbol w\odot
+\operatorname{Norm}(-\boldsymbol s_{rw}),
+\end{equation}
+}
+rather than through the restart distribution. Uniform restart supplies equal restart input to all nodes, while $\boldsymbol w$ introduces kernel-density-based isolation information when forming the final anomaly scores.
+
+Importantly, larger $w_i$ indicates greater suspected isolation. Directly using normalized $\boldsymbol w$ as the restart vector would increase the restart input to these nodes and alter the interpretation of low propagation scores as evidence of anomalousness. Thus, weighted restart and final-score fusion are different modeling choices and are not interchangeable.
+
+We have expanded the discussion in Section [5.7] to explain this design. We do not claim that uniform restart is universally preferable; an appropriately designed adaptive restart distribution remains a possible extension requiring separate evaluation. We have added the following analysis:
+
+\textcolor{blue}{
+$\cdots$, we conducted a fusion analysis on the same ten datasets while retaining identical score components and parameter settings. $\cdots$}
+
+\textit{Locations: Section [5.6] and Section [5.7], revised Eq. [29], and Figure [4].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#2's Comment 5}]
+The comparative experiments lack representative self-representation-based and kernel-based anomaly detection algorithms, making the baselines insufficiently comprehensive. It is suggested to add these relevant methods to further verify the superiority of the proposed method.
+\end{tcolorbox}
+\response{
+Thank you for this suggestion. We have expanded the comparison to include three relevant baselines: LRR, which learns low-rank self-representations; Kernel PCA, which detects anomalies using reconstruction errors in a nonlinear kernel representation; and OCSVM-RBF, which estimates a one-class decision boundary using an RBF kernel. These additions broaden the coverage of self-representation-based and kernel-based approaches.
+
+All three methods are evaluated on the 20 benchmark datasets. Their ROC-AUC results are presented alongside the four KSRA variants in Table [4], and AP results are provided in Table [5]. LRR, Kernel PCA, and OCSVM-RBF achieve mean ROC-AUC values of 0.8995, 0.9198, and 0.9386, respectively, compared with 0.9509 for the fixed Frobenius-norm KSRA variant. Their corresponding mean AP values are 0.5079, 0.5976, and 0.6637, compared with 0.6764 for that KSRA variant.
+
+These additional comparisons support the overall competitiveness of KSRA under the evaluated protocol. We have also clarified the roles of the added methods in the experimental description. The four KSRA variants are reported separately, while KSRA$_{best}$ is explicitly identified as an oracle-selected reference rather than an independently specified method.
+
+\textit{Locations: Section [5.2] and Section [5.3], Tables [4–5].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#2's Comment 6}]
+Ablation experiments are absent to quantify the contribution of each core module and verify the rationality of the element-wise multiplication fusion strategy. It is suggested to add ablation studies to support the module design.
+\end{tcolorbox}
+\response{
+Thank you for this suggestion. We have added ablation experiments addressing the core modules. We evaluate the contributions of the mixed kernel, self-representation, and random walk components by modifying one component at a time while retaining the remaining pipeline. The Frobenius norm solver is fixed wherever self-representation is retained. The results and their dataset-dependent effects are discussed in Section [5.7] and Table [7].
+
+We additionally examined the final fusion strategy on the same ten-dataset subset, retaining identical score components and parameter settings. Multiplicative fusion achieves a mean ROC-AUC of 0.9525, compared with 0.9059 for the structural score alone and 0.9111 for the density weight alone. These results support combining density and structural information on the evaluated datasets.
+
+\textit{Locations: Section [5.7], Tables [7].}
+}
+
+
+\subsection{Reviewer \#3}
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 1}]
+Validity of the random-walk transition matrix. \\
+The self-representation matrix $\boldsymbol{Z}$ is not explicitly constrained to be non-negative, yet the symmetrized matrix is directly normalized and interpreted as a transition probability matrix. The authors should clarify how non-negative transition probabilities are guaranteed and justify the validity of the random-walk formulation.
+\end{tcolorbox}
+\response{
+Thank you for identifying this issue. We agree that symmetrization and row normalization alone do not guarantee nonnegative transition probabilities when the self-representation coefficients are signed.
+
+We have revised the graph construction in Section [4.3]. Specifically, we construct the affinity matrix as $\boldsymbol{Z}_{sym} = (\boldsymbol{\left|Z\right|} + \boldsymbol{\left|Z\right|}^T)/2$, using element-wise coefficient magnitudes as association strengths. Each positive-degree row is then normalized, while a zero-degree row is replaced by the uniform distribution. This guarantees that $P$ is nonnegative and row-stochastic without changing the self-representation objectives.
+
+We further clarify that uniform restart yields $\boldsymbol{Q}=(1-d)\boldsymbol{P}+d\boldsymbol{1}\boldsymbol{v}^\top$. For $0<d<1$ and $\boldsymbol{v}=\boldsymbol{1}/n$, $\boldsymbol{Q}$ is strictly positive and row-stochastic, ensuring a unique stationary distribution and convergence. The revised formulation therefore explicitly distinguishes signed reconstruction coefficients from valid graph transition probabilities. The revised texts are as follows:
+
+\textcolor{blue}{
+$\cdots$, the learned matrix $\boldsymbol{Z}$ is symmetrized to construct an undirected weighted graph:
+\begin{equation}
+    \boldsymbol{Z}_{sym} = \frac{\boldsymbol{\left|Z\right|} + \boldsymbol{\left|Z\right|}^T}{2}.
+\end{equation}
+}
+
+\textit{Location: Section [4.3].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 2}]
+Self-reconstruction in the representation matrix. \\
+The formulation does not appear to impose a constraint such as diag$(\boldsymbol{Z}) = 0$. Without excluding self-representation, samples may reconstruct themselves and dominate the learned graph. The authors should justify this design or evaluate a zero-diagonal version.
+\end{tcolorbox}
+\response{
+Thank you for raising this point. We agree that a zero-diagonal constraint is a useful way to exclude direct self-reconstruction and emphasize relationships between different samples.
+
+KSRA uses a regularized reconstruction formulation that permits self-contributions. The diagonal coefficients are penalized together with the off-diagonal coefficients, rather than being exempt from regularization. Retaining an unconstrained diagonal also preserves the unified solution procedures for the four variants. In the resulting graph, diagonal affinities represent self-loops, which are compatible with the random-walk formulation.
+
+We have clarified this design choice and its limitation in Section [4.2]. Specifically, regularization controls coefficient magnitudes but does not guarantee that diagonal contributions cannot dominate, particularly under weak regularization. We therefore do not claim equivalence to a zero-diagonal model or that retaining self-contributions is universally preferable. The following text has been added:
+
+\textcolor{blue}{$\cdots$ We do not impose a zero-diagonal constraint on $\boldsymbol{Z}$, allowing self-contributions within the regularized reconstruction model. $\cdots$}
+
+\textit{Location: Section [4.2].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 3}]
+Potential model-selection bias from KSRA best. \\
+Table 3 reports “KSRA best”, apparently selecting the best of the four KSRA variants separately for each dataset. If this selection is based on test AUC, it represents oracle selection and may bias both the performance comparison and statistical analysis. The authors should explain the selection procedure and use a fixed or label-independent variant for the main comparison.
+\end{tcolorbox}
+\response{
+Thank you for highlighting this issue. We agree that selecting the best variant separately for each dataset using test ROC-AUC constitutes oracle selection.
+
+We have clarified that KSRA$_{best}$ is provided only as an oracle reference, while all four variants are reported individually. It is now explicitly labeled and excluded from fixed-method rankings and statistical testing. In the AP table, this column reports the AP of the same ROC-AUC-selected variant, without additional selection by AP.
+
+The main framework-level comparison uses KSRA$_2$ as a fixed variant across datasets. The Friedman–Nemenyi and Wilcoxon–Holm analyses, ablation studies, and parameter sensitivity analysis also use KSRA$_2$ rather than KSRA$_{best}$. We have made this distinction explicit in the text and relevant captions.
+
+These analyses therefore do not involve per-dataset selection among the four variants. However, fixing the variant does not eliminate evaluation-based hyperparameter selection, which we acknowledge separately as a limitation. We have revised the presentation to prevent the oracle reference from being interpreted as the performance of a fixed detector.
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 4}]
+Hyperparameter selection is unclear. \\
+The manuscript provides search ranges for $\lambda$, but does not clearly explain how the final value is selected. The selection procedures for the kernel bandwidth $\sigma$ and random-walk parameter $d$ are also unclear. Since this is an unsupervised setting, the authors should specify a reproducible parameter-selection procedure that does not rely on test labels.
+\end{tcolorbox}
+\response{
+Thank you for requesting clarification of the hyperparameter-selection procedure. We have revised the manuscript to distinguish model fitting, benchmark parameter selection, and sensitivity analysis.
+
+KSRA is fitted without anomaly labels. In the original benchmark evaluation, however, $\lambda$ was selected from $\{10^{-8}, 10^{-7}, \ldots, 10^{7}\}$ by maximizing ROC-AUC on each evaluation dataset. We now explicitly identify these results as oracle-tuned results within the specified search grid, rather than results obtained using a label-independent selection procedure. This protocol examines performance under dataset-specific tuning, but may produce optimistic estimates and does not provide a label-independent deployment rule.
+
+In contrast, the kernel bandwidth is calculated from the unlabeled input as the mean off-diagonal mixed distance, and the restart weight is fixed at $d=0.85$ across datasets. Neither is selected by maximizing the target dataset’s performance.
+
+We have also added sensitivity analyses for $\lambda$, $\sigma$, and $d$ to characterize their effects. These analyses complement the benchmark evaluation but are not presented as evidence that label-based parameter selection is free from bias. The revised manuscript states this limitation and restricts the interpretation of the reported improvements accordingly.
+
+\textit{Locations: Section [5.6], Figure [4].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 5}]
+The proposed mixed kernel requires stronger justification. \\
+The method combines Euclidean and Hamming distances and then applies a Gaussian transformation, but it is not established whether the resulting matrix is guaranteed to be a valid positive semidefinite kernel. The authors should provide theoretical justification or an appropriate reference. The normalization or weighting between numerical and nominal distances should also be explained.
+\end{tcolorbox}
+\response{
+Thank you for identifying this important distinction. We agree that applying a Gaussian transformation to the sum of Euclidean and Hamming distances does not, in general, guarantee a positive semidefinite kernel matrix. We have corrected the RKHS interpretation in the manuscript.
+
+Specifically, the constructed matrix is now explicitly described as a nonlinear similarity-profile representation. Each sample is represented by its similarities to the reference samples. These explicit feature vectors induce a valid positive semidefinite inner-product kernel, with Gram matrix $\boldsymbol{K}\boldsymbol{K}^\top$, as demonstrated by $\boldsymbol{c}^\top \boldsymbol{K}\boldsymbol{K}^\top \boldsymbol{c}=\|\boldsymbol{K}^\top \boldsymbol{c}\|_2^2\geq0$. This does not imply that the original matrix $\boldsymbol{K}$ is positive semidefinite. KSRA reconstructs the profile matrix $\boldsymbol{K}$ directly, so its formulation does not require that assumption. This clarification leaves the numerical construction and optimization unchanged.
+
+We have also clarified that the numerical inputs are range-normalized to $[0,1]$, while the Hamming distance is the mismatch proportion. Their additive combination is a fixed fusion without an additional type-specific weighting parameter. We explicitly acknowledge that these treatments do not guarantee equal contributions from the two distance components, and that bandwidth adaptation addresses common scaling rather than relative scale imbalance.
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 6}]
+The distance-concentration claim is not sufficiently demonstrated. \\
+The manuscript argues that kernelization mitigates distance concentration in high-dimensional spaces, but no direct evidence is provided. Since this is a central motivation of the method, the authors should either add supporting experiments or moderate this claim.
+\end{tcolorbox}
+\response{
+Thank you for highlighting the need for direct evidence. We have added a controlled dimensionality experiment and revised the scope of the distance-concentration claim.
+
+The experiment fixes 500 samples with 20 numerical and 10 categorical base features and progressively adds up to 500 independent irrelevant numerical features. Both structureless data and structured data containing 5\% anomalies are evaluated across five data-generation seeds. The new figure reports: (a) distance CV on structureless data; (b) distance CV on structured data; and (c) standardized separation between normal–anomaly and normal–normal sample pairs.
+
+We explicitly distinguish individual kernel affinities from kernel-profile representations, i.e., rows of the kernel matrix supplied to self-representation learning. At 530 dimensions on structured data, the hybrid-kernel profiles have a distance CV of 0.1842, compared with 0.0350 for the original mixed distances. Their standardized separation is 3.5860, compared with 2.3121 for the original distances. These observations support greater relative dispersion and structural separation in the kernel-profile representation under the tested conditions.
+
+We have nevertheless moderated the statements in the Abstract and Introductio. We no longer imply that kernelization universally eliminates distance concentration. We also acknowledge that greater geometric dispersion does not guarantee improved downstream detection.
+
+\textit{Locations: Section [5.8], Figure [5], and the revised statements in the Abstract and Introduction.}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 7}]
+Ablation studies are insufficient. \\
+The current variant analysis only compares different loss and regularization combinations. It does not isolate the contributions of kernelization, random walk, adaptive weighting, and score fusion. Additional component-wise ablations would strengthen the methodological claims.
+\end{tcolorbox}
+\response{
+Thank you for this suggestion. We agree that the original comparison of loss and regularization combinations does not constitute a component-wise ablation study. We have therefore added a separate ablation study examining three major components of KSRA:
+
+(1) replacing the mixed kernel with a Euclidean RBF kernel;
+(2) removing self-representation and directly using the kernel matrix as the graph affinity matrix; and
+(3) replacing random-walk propagation with degree-based scoring.
+
+The Frobenius norm solver is used consistently wherever self-representation is retained. These experiments complement the formulation-level variant analysis by examining changes to the kernel construction, graph learning, and propagation stages.
+
+The results support the usefulness of the mixed-kernel construction and self-representation, while the effect of random-walk propagation is dataset dependent. We have revised the discussion accordingly and avoided claiming that every component consistently improves performance.
+
+We additionally examined the final fusion strategy on the same ten-dataset subset, retaining identical score components and parameter settings. Multiplicative fusion achieves a mean ROC-AUC of 0.9525, compared with 0.9059 for the structural score alone and 0.9111 for the density weight alone. These results support combining density and structural information on the evaluated datasets.
+
+\textit{Locations: Section [5.7] and Table [7].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 8}]
+Evaluation metrics are limited. \\
+The experiments mainly rely on ROC-AUC, although several datasets have very low anomaly ratios. The authors should additionally report PR-AUC or Average Precision, which is more informative under severe class imbalance.
+\end{tcolorbox}
+\response{
+Thank you for this suggestion. We have supplemented ROC-AUC with Average Precision (AP) to assess anomaly detection performance under class imbalance.
+
+AP is calculated from the archived per-sample anomaly scores, treating anomalies as the positive class. We use non-interpolated AP rather than trapezoidal PR-AUC, retaining the existing configurations without parameter reselection using AP.
+
+Table [5] reports AP across all 20 benchmark datasets for the 15 baseline methods and four KSRA variants, together with the anomaly ratio of each dataset. The KSRA$_{best}$ column reports the AP of the variant previously selected by test ROC-AUC, rather than selecting a new best variant using AP.
+
+The Frobenius norm KSRA variant achieves the highest mean AP of 0.6764, compared with 0.6637 for the strongest baseline by mean AP, OCSVM-RBF. These results complement the ROC-AUC evaluation by characterizing anomaly-class precision–recall performance. We have added the AP definition, evaluation procedure, and corresponding discussion to the revised manuscript.
+
+\textit{Locations: Section [5.3] and Table [5].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 9}]
+Statistical significance claims should be revised. \\
+The Nemenyi analysis indicates that KSRA is not significantly different from some strong baselines such as GBMOD and WNINOD. Therefore, statements claiming significant superiority over
+all comparison methods should be moderated.
+\end{tcolorbox}
+\response{
+Thank you for pointing out this overstatement. We agree that the Nemenyi results do not support significant superiority over every comparison method. We have revised the relevant statements in the Abstract and experimental discussion.
+
+The revised analysis uses the fixed Frobenius norm KSRA variant. At the 0.05 significance level, the Nemenyi test identifies significant differences against eight of the 11 original baselines, but not against GBMOD, WNINOD, or ECOD. We now clearly distinguish KSRA’s leading average rank from statistically significant pairwise differences. We also clarify that a nonsignificant result neither establishes equivalence nor demonstrates superiority.
+
+The additional Wilcoxon–Holm results are reported as complementary pairwise evidence, without overriding the Nemenyi conclusions or supporting a blanket claim of significant superiority.
+
+\textit{Locations: Section [5.5], Table [6].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Comment 10}]
+Scalability analysis is missing. \\
+KSRA requires $n \times n$ distance, kernel, and representation matrices, which may become expensive for large datasets. The authors should provide time and memory complexity analysis and,
+preferably, a scalability experiment with increasing sample size.
+\end{tcolorbox}
+\response{
+Thank you for highlighting this limitation. We have added theoretical time and space complexity analyses for all four KSRA variants, together with a sample-size scalability experiment.
+
+For the Frobenius norm variant, the current dense implementation requires $O(n^2m+n^3+Tn^2)$ time, where $m$ is the feature dimension and $T$ is the number of propagation iterations. The iterative variants incur additional optimization-iteration costs, as detailed in Section [5.9]. Space complexity is $O(nm+n^2+n^2q)$, accounting for both the dense matrices and the categorical-distance broadcasting temporaries, where $q$ denotes the number of categorical features.
+
+The scalability experiment uses the fixed Frobenius norm variant with 20 numerical and 10 categorical features, increasing the sample size from 250 to 4000 with five planned repetitions per size. All 25 runs up to $n=3000$ completed successfully. Mean execution time increased from 0.013 s to 5.009 s, and mean peak working-set memory increased from 71.4 MiB to 1504.1 MiB.
+
+At $n=4000$, the first run exceeded the predefined 2335 MiB process-memory budget, and the remaining repetitions were skipped. We explicitly identify this as a safeguard termination rather than an operating-system-confirmed out-of-memory failure. The revised discussion acknowledges the limitations of the dense implementation and identifies blockwise distance computation and approximation-based approaches as directions for future work.
+
+\textit{Locations: Section [5.9].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 1}]
+The manuscript is inconsistent about the number of datasets: some sections state 20 datasets, while the contribution statement refers to 15.
+\end{tcolorbox}
+\response{
+Thank you for your suggestion. We have corrected this issue.
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 2}]
+The authors should clearly indicate which datasets are numerical, nominal, or mixed, since mixed-type data handling is a central motivation of the paper.
+\end{tcolorbox}
+\response{
+Thank you for this suggestion. We have added a “Type” column to Table [2] in Section [5.1] to explicitly identify numerical, nominal, and mixed datasets.
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 3}]
+The data preprocessing procedure should be described more clearly, including normalization, categorical-variable handling, and missing-value treatment.
+\end{tcolorbox}
+\response{
+Thank you for this suggestion. We have expanded the preprocessing description in Section [5.1] to clarify normalization, categorical-variable encoding and distance handling, and missing-value treatment in the prepared benchmark files. The following text has been added:
+
+\textcolor{blue}{$\cdots$ We used the prepared benchmark data files. Range-normalized columns in $[0,1]$ were processed using Euclidean distance, $\cdots$}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 4}]
+Algorithm 1 lists only $\boldsymbol{X}$ and $\lambda$ as inputs, although $\sigma$ and $d$ are also required by the method.
+\end{tcolorbox}
+\response{
+Thank you for pointing this out. We have revised Algorithm [1] to explicitly specify how the Gaussian bandwidth $\sigma$ is computed and to state the restart probability $d=0.85$.
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 5}]
+The sensitivity analysis should include $\sigma$ and $d$, rather than focusing only on $\lambda$.
+\end{tcolorbox}
+\response{
+Thank you for your suggestion. We have corrected this issue in Section [5.6].
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 6}]
+Runtime comparisons should report the hardware, software environment, and whether results are averaged over repeated runs.
+\end{tcolorbox}
+\response{
+Thank you for this suggestion. Complete hardware/software metadata and repeated-run timing statistics were not retained for the original experiments, so we cannot reliably provide them retrospectively. This limitation is now noted in the caption of Table [3].
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 7}]
+Stochastic baselines such as AutoEncoder, VAE, and DIF should preferably be evaluated over multiple random seeds and reported as mean $\pm$ standard deviation.
+\end{tcolorbox}
+\response{
+Thank you for this suggestion. We agree that repeated runs would provide a better assessment of stochastic variability. We have clarified that the reported stochastic-baseline results are based on single runs and do not characterize variation across random seeds. We have added this limitation and qualified the associated performance claims. The cross-dataset statistical tests are not presented as a substitute for multi-seed evaluation; such evaluation remains necessary for a fuller assessment of robustness. We have reported the limitation as follows:
+
+\textcolor{blue}{$\cdots$ Stochastic baselines were evaluated using single runs; $\cdots$}
+
+\textit{Location: Section [5.1].}
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 8}]
+Some claims, such as describing KSRA as the “optimal candidate method”, are stronger than what the statistical analysis supports and should be moderated.
+\end{tcolorbox}
+\response{
+Thank you for your suggestion. We have revised the relevant texts.
+}
+
+\begin{tcolorbox}[title = {The Reviewer \#3's Minor Comment 9}]
+The manuscript contains several grammatical errors and duplicated expressions and would benefit from careful language editing.
+\end{tcolorbox}
+\response{
+Thank you for your suggestion. We have revised the relevant texts.
+}
+
+
+We thank the editor and reviewers again for their time and constructive comments, which have helped us improve the manuscript.
+
+
+
+\end{document}
