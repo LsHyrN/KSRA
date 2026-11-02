@@ -4,7 +4,7 @@
 Anomaly detection is a pivotal technology in fields such as data mining, information security, and image processing. Existing research, however, faces two major challenges: 1) traditional proximity-based detection methods are susceptible to the distance concentration effect in high-dimensional spaces, leading to a decline in detection accuracy. 2) most models are only compatible with single-attribute data (either numerical or nominal), making them struggle with the mixed-type data prevalent in real-world scenarios, which limits their applicability. To address these challenges, this paper proposes a Kernelized Self-Representation based Anomaly detection (KSRA) method. Specifically, the original mixed data is first mapped into a high-dimensional feature space using a mixed kernel function. This process not only captures non-linear relationships, but also achieves a unified representation and feature enhancement for different attribute types, effectively mitigating the distance concentration problem. Building upon this, a generalized kernel self-representation framework is constructed. Four model variants are systematically derived based on different combinations of loss and regularization terms. Finally, a random walk mechanism is introduced to achieve efficient global information diffusion and deep integration, based on which a final anomaly score is defined to accurately reflect the anomaly degree of each sample. To verify the effectiveness of the proposed method, extensive comparative experiments are conducted on 20 benchmark datasets. The results demonstrate that the KSRA method  significantly outperforms 11 mainstream anomaly detection algorithms.
 
 ## Framework
-![image](Paper/framework_KSRA.png)
+![image](Paper/KSRA_EXSY/Optimal-Design-layout/images/Figures/framework_KSRA.png)
 
 ## Usage
 You can run KSRA by:
@@ -34,7 +34,7 @@ samples_scores = [0.0734101  0.07207255 0.         0.18820704 0.08632531 0.06828
  0.10961915 0.08438363]
 AUC = 0.8125000000
 ```
-You can also see [REPRODUCIBILITY.md](REPRODUCIBILITY.md) for dependencies, data preparation, and experimental settings.
+You can also see [REPRODUCIBILITY.md](Notes/REPRODUCIBILITY.md) for dependencies, data preparation, and experimental settings.
 
 ## Contact
 If you have any questions, please contact yangluoshu15717@foxmail.com or yuanzhong@scu.edu.cn.
