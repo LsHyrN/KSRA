@@ -1,87 +1,112 @@
-# KSRA: Experimental Settings and Data Preparation
+# Reproducing the KSRA experiments
 
-This document supplements the runnable example in the repository README. It describes the dependencies, input format, and settings used to run the four KSRA variants. The README example is a usage demonstration; its `lambda_val = 0.01` is not a universal setting for all benchmark datasets.
+## Repository layout
 
-## 1. Dependencies
+These local release names distinguish the new files from the original research files.
 
-The code uses Python 3 and the following packages:
+    KSRA/
+      Code/KSRA.py
+      Code/KSRA_experiments.py
+      Datasets/Example_mixed.mat
+      Datasets/annealing_variant1.mat
+      Datasets/...
+      Results/
+      Notes/REPRODUCIBILITY.md
 
-```bash
-python -m pip install numpy scipy scikit-learn pandas torch
-```
+Paths are relative to the code location. No preparation folders, manifests, or internal audit files are required.
 
-NumPy and SciPy provide matrix operations, distance calculations, and MATLAB-file loading. Scikit-learn provides evaluation utilities, and pandas is used by the experiment script to export results. PyTorch is imported by the current implementation; the KSRA computations use NumPy and SciPy and do not require a GPU.
+## Dependencies and recorded environments
 
-For a new run, record the installed versions with:
+Only Python, NumPy, and SciPy are required. The main experiments used Python 3.11.4, NumPy 2.1.3, and SciPy 1.14.1. For example:
 
-```bash
-python --version
-python -m pip freeze > environment.txt
-```
+    python -m pip install numpy==2.1.3 scipy==1.14.1
 
-These commands record the environment of that run, rather than reconstructing the environment of the originally reported experiments.
+The separate scalability benchmark used Python 3.8.20, NumPy 1.24.4, SciPy 1.10.1 and single-thread MKL on Windows 10, Intel Core i5-1035G1, approximately 16 GiB RAM. Its times should not be conflated with timings in the main experiments. Execution times depend on environment.
 
-## 2. Input Data and Preprocessing
+## Input
 
-Each dataset is stored as a MATLAB `.mat` file containing the variable `trandata`, a two-dimensional array with one sample per row:
+Each MAT file must contain a finite 2-D trandata matrix, with samples in rows, prepared features in all but the last column, and binary labels (normal=0, anomaly=1) in the final column. Both classes are required for evaluation.
 
-- All columns except the last contain input features.
-- The last column contains binary evaluation labels: `1` for an anomaly and `0` for a normal sample.
-- Labels are excluded from the input to `KSRA` and are used for evaluation and the parameter-selection procedure described below.
+Use the prepared benchmark files without extra normalization or imputation. Numerical columns are already range-normalized to [0,1]. Nominal columns contain integer codes. The benchmark convention treats a column as numerical when all entries are at most 1+1e-9. Remaining columns use mismatch distance. Binary nominal columns therefore follow this prepared-input convention. For new data, supply an explicit numeric_mask through the core API.
 
-```python
-trandata = loadmat(dataset_path)['trandata'].astype(np.float64)
-data = trandata[:, :-1]
-labels = trandata[:, -1].ravel()
-```
+The runner defaults to the original 20 manuscript benchmarks, using full inputs. Example_mixed is an optional example and is excluded from paper averages. Exploratory full-catalog subsampling and skip lists are outside this entry point.
 
-Use the prepared benchmark files corresponding to the datasets listed in the manuscript. Their numerical attributes have already been scaled to the interval `[0, 1]`, and the prepared feature matrices contain no missing or infinite values. The `KSRA` function does not perform additional normalization or missing-value imputation. Replacing these files with raw source datasets therefore requires reproducing the preprocessing first.
+## Running
 
-The current implementation selects distance components using the stored feature values: a column whose entries are all at most `1 + 1e-9` is assigned to the Euclidean component; each remaining column is assigned to the Hamming component. This is an implementation convention for the prepared inputs, rather than a general-purpose semantic feature-type detector. In particular, a binary column containing only `0` and `1` is assigned to the Euclidean component.
+From the repository root:
 
-For the Hamming component, categorical values are represented by numeric codes. The distance is the proportion of mismatched categorical attributes, using a comparison tolerance of `1e-9`; the magnitudes of unequal category codes do not determine their distance. No additional one-hot encoding is applied inside `KSRA`. An absent distance component contributes zero, and the mixed distance is the sum of the Euclidean and Hamming components.
+    python Code/KSRA_experiments.py
 
-For the README example, place `Example_mixed.mat` in `Datasets/` relative to the working directory, or adjust the example's file path to its actual location. The separate batch script `KSRA_experiments.py` instead expects a lowercase `datasets/` directory in the parent of the directory containing that script. It reads dataset names from `all_datalists_outlier.mat` (variable `datalists`) in that directory. Check these paths and explicitly select the manuscript's benchmark datasets before a batch run.
+Fixed KSRA2 only:
 
-## 3. Model Variants
+    python Code/KSRA_experiments.py --variants v2
 
-The function interface is:
+Small example:
 
-```python
-scores = KSRA(data, lambda_val, sigma=None, solver='v2')
-```
+    python Code/KSRA_experiments.py --datasets Example_mixed --variants v2 --lambdas 0.01
 
-| Manuscript variant | `solver` | Reconstruction loss | Coefficient regularizer |
-| --- | --- | --- | --- |
-| KSRA1 | `'v1'` | l2,1 norm | l2,1 norm |
-| KSRA2 | `'v2'` | Squared Frobenius norm | Squared Frobenius norm |
-| KSRA3 | `'v3'` | l2,1 norm | Squared Frobenius norm |
-| KSRA4 | `'v4'` | Squared Frobenius norm | l2,1 norm |
+Dataset arguments are filename stems. Use --output to specify an alternative result directory. A fresh subprocess runs each dataset/variant pair, with numerical-library threads fixed to one. Windows process commit is monitored against 4096 MiB. That native monitor is unavailable on other operating systems. Worker failure stops the batch and identifies its log.
 
-Calling `KSRA(data, lambda_val)` uses KSRA2. To run another variant, set `solver` explicitly. Valid solver names are `'v1'`, `'v2'`, `'v3'`, and `'v4'`.
+Re-running an identical command skips successful and unconverged terminal records. Interrupted or failed configurations are recomputed. Incompatible code, data or solver identities require a new output directory. Dense solver checkpoints and representations are not saved.
 
-## 4. Parameter Settings
+## Models and numerical settings
 
-| Setting | Value or rule |
-| --- | --- |
-| Regularization parameter, lambda | Search over `10.0 ** np.arange(-8, 8)`, i.e., `1e-8` through `1e7` |
-| Gaussian bandwidth, sigma | With `sigma=None`, the mean of all off-diagonal mixed distances, computed separately for each dataset |
-| Restart probability, d | `0.85`; the propagation term has coefficient `1 - d = 0.15` |
-| Initial propagation vector | Uniform, with each entry equal to `1 / n` |
-| Propagation stopping tolerance | `1e-6`, measured by the Euclidean norm of consecutive vectors |
-| Maximum propagation iterations | `1000` |
-| KSRA1 and KSRA3 solver limits | At most `50` iterations; objective-change tolerance `1e-6` |
-| KSRA2 solver | Direct regularized linear-system solution |
-| KSRA4 solver limits | At most `100` iterations; primal and dual residual tolerances `1e-6`; ADMM penalty `rho = 1.0` |
+The residual is E=K-KZ. All l2,1 norms sum Euclidean row norms.
 
-Here, `n` is the number of samples. The default bandwidth rule requires a positive mean off-diagonal distance; an input containing only identical samples requires separate handling. The restart probability and propagation stopping settings are internal constants in the current code, rather than function arguments. Unless intentionally testing alternative settings, retain these defaults.
+| Variant | Loss | Regularizer |
+|---|---|---|
+| KSRA1 / v1 | Row l2,1 | Row l2,1 |
+| KSRA2 / v2 | Squared Frobenius | Squared Frobenius |
+| KSRA3 / v3 | Row l2,1 | Squared Frobenius |
+| KSRA4 / v4 | Squared Frobenius | Row l2,1 |
 
-## 5. Evaluation and Reporting
+- Lambda grid: 10^j for j=-8,...,7.
+- Sigma: mean off-diagonal mixed distance.
+- Mixed distance: numerical Euclidean distance plus the proportion of nominal mismatches, with mismatch tolerance 1e-9.
+- Kernel construction row block size: 256.
+- KSRA1/3 smoothed row-norm epsilon: 1e-4.
+- Gradient and relative-step tolerances: 1e-7.
+- ADMM absolute/relative tolerances: 1e-8 and 1e-6.
+- Initial rho=1. The runner enables residual balancing every 25 iterations through iteration 1000, ratio threshold 10, multiplier 2, bounds [1e-8,1e8], and dual rescaling. The core API itself defaults to fixed rho.
+- Maximum iterations: 20000, with continuation stages 2000, 5000 and 20000.
+- Solver budget: 120 seconds per configuration, checked between iterations. One dense operation can exceed that time.
+- Graph: magnitude symmetrization (abs(Z)+abs(Z).T)/2 with self-loops retained. Zero-degree rows transition uniformly.
+- Restart weight d=0.85, propagation weight 0.15; uniform restart and initialization.
+- Walk tolerance: 1e-12 in l2, maximum 1000 iterations.
+- Structural score: min-max-normalized negative stationary probability. The core maps a constant vector to zero using its floating-point-aware rule.
+- Final score: structural score multiplied by the local isolation weight.
 
-The output is one anomaly score per sample; larger scores indicate greater abnormality. Compute ROC-AUC using the binary labels and the returned scores, as shown in the README. If reporting average precision (AP), use `sklearn.metrics.average_precision_score(labels, scores)`.
+## Selection and interpretation
 
-For the benchmark parameter search, lambda is selected separately for each dataset and variant by maximizing ROC-AUC over the stated grid. This selection uses evaluation labels and should be interpreted as label-informed benchmark tuning, rather than a label-independent deployment procedure. Report AP from the same selected run when pairing ROC-AUC and AP results. The value `0.01` in the README is only an example and does not replace this search.
+Fitting and graph construction do not receive labels. Each dataset/variant selects the converged configuration with highest evaluation ROC-AUC; exact ties select smaller lambda. This uses evaluation labels and is not independent held-out parameter selection.
 
-Report the four variants separately. A best-across-variants result is a retrospective reference and should not be interpreted as the performance of a fixed, automatically selected variant. The manuscript's statistical comparisons, ablation studies, and parameter-sensitivity analyses use the fixed KSRA2 variant.
+AP is non-interpolated average precision from the same selected score vector. It is not independently tuned. Dataset averages are unweighted across the same 20 tasks.
 
-KSRA does not use random initialization or random sampling in its current implementation. Small numerical differences may nevertheless occur across numerical-library versions and platforms. Single-run benchmark results should not be interpreted as means over multiple random seeds.
+Unconverged configurations retain diagnostics, have no scores or metrics, and are excluded from selection. The grid_complete flag requires every requested lambda to succeed. A partial-grid best observed value does not establish a fully solved grid optimum.
+
+Each solver configuration has a 120-second time budget. Hardware and numerical-library differences can therefore affect how many iterations finish within the budget and which configurations converge.
+
+## Outputs
+
+    Results/<dataset>/dataset.json
+    Results/<dataset>/v2_lam_1e-02/result.json
+    Results/<dataset>/v2_lam_1e-02/history.json
+    Results/<dataset>/v2_lam_1e-02/progress.json
+    Results/<dataset>/v2_lam_1e-02/scores.npy
+    Results/<dataset>/v2_lam_1e-02/stationary.npy
+    Results/<dataset>/v2_lam_1e-02/curves.npz
+    Results/<dataset>_v2.log
+    Results/summary.csv
+    Results/summary.json
+
+Scores follow original input row order. Successful results include ROC/PR arrays, parameters and convergence diagnostics. summary.csv contains one row per dataset/variant with selected lambda, ROC-AUC, AP and grid completeness. If an application locks the CSV, the latest table is left in summary.csv.tmp and fitting continues.
+
+selected_configuration_seconds sums recorded profile construction, cumulative solver and scoring times. It excludes the whole parameter search and process startup. summary.json distinguishes batch completion from full numerical convergence.
+
+Separate scalability, sensitivity, ablation, fusion and synthetic geometry experiments require their dedicated research scripts.
+
+The repository includes per-sample anomaly scores for all converged configurations on the 20 manuscript benchmarks. The accompanying `summary.csv` identifies the configuration selected for each dataset and variant. Running the experiment script also generates diagnostic files in the output directory.
+
+## Validation against archived results
+
+We checked the public scripts against the archived experimental results on the Iris benchmark. The checks covered all four KSRA variants and included the full 16-value regularization grid for KSRA2. Across 27 successful runs, per-sample anomaly scores agreed within an absolute tolerance of 1e-12 and a relative tolerance of 1e-10. ROC-AUC and average precision agreed within an absolute tolerance of 1e-12.
