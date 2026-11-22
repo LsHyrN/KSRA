@@ -12,6 +12,7 @@ From the repository root, run KSRA2 on the Iris dataset with λ = 0.01:
 python Code/KSRA_experiments.py --datasets iris_Irisvirginica_11_variant1 --variants v2 --lambdas 0.01 --output example_results
 ```
 This example gives ROC-AUC **0.9382** and average precision **0.9217**. The output file `example_results/summary.csv` reports both metrics and the path to the per-sample anomaly scores (`scores.npy`).
+
 See [REPRODUCIBILITY.md](Notes/REPRODUCIBILITY.md) for dependencies and instructions for running the full benchmark.
 
 ## Contact
